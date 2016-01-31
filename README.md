@@ -3,5 +3,5 @@ A jQuery plugin that will make any OCD freak to lose his mind :)
 
 ## Features
 
-* Tils headings
+* Tilts headings
 * Change random letters font size
