@@ -1,5 +1,5 @@
 # OCD.js
-A JavaScript library that will make any OCD freak to lose his mind. 
+A jQuery plugin that will make any OCD freak to lose his mind :)
 
 ## Features
 
