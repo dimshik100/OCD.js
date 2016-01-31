@@ -25,6 +25,14 @@ activate with jQuery like so:
 
 * Color random letters in random color
 
+* Change font-style of random letters to *italic*
+
+* Change font-weight of random letters to **bold**
+
+* Mirror random letters / words [Using this methods](https://css-tricks.com/snippets/css/reversing-text/)
+
+* Rotate random letters / words upside-down
+
 * When user clicks the "Order" button (will be added to the top corner of the screen), all the letters on the page will be rearanged in a table
 
 Letter  | Frequency
