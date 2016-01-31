@@ -23,12 +23,13 @@ activate with jQuery like so:
 
 ## Ideas
 
+* Color random letters in random color
+
 * When user clicks the "Order" button (will be added to the top corner of the screen), all the letters on the page will be rearanged in a table
 
 Letter  | Frequency
--- | --
+--- | ---
 a  | 51
 f  | 72
 t  | 46
 
-* Color random letters in random color
