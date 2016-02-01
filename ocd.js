@@ -53,7 +53,7 @@
 		return this;
 	}
 
-	/*region Private Functions*/
+	/*Private Functions region*/
 
 	var utils = {
 		randomIntFromInterval: function (min, max) {
@@ -73,7 +73,16 @@
 			return logStyle;
 		},
 		//log: this.options.debug ? console.log.bind(window.console) : function () {}
-		log: undefined
+		log: undefined,
+		zeroPad: function (n, digits, padChar) {
+			// n = number you want padded
+			// digits = length you want the final output
+			n = n.toString();
+			while (n.length < digits) {
+				n = padChar + n;
+			}
+			return n;
+		}
 	}
 
 	function loadScript(path, callback, params) {
@@ -92,7 +101,7 @@
 
 	/*endregion Private Functions*/
 
-	/*region Public Functions*/
+	/*Public Functions region */
 
 	Plugin.prototype = {
 
@@ -108,8 +117,10 @@
 			// init logger
 			utils.log = this.options.debug ? console.log.bind(window.console) : function () {}
 
+			//TODO: change the call from "this.blast" to fire a custom event "blastLoaded", and on event call blast with params
 			loadScript("../externals/blast/jquery.blast.min.js", this.blast, {
 				selector: 'div',
+
 				delimiter: "letter",
 				minFontSize: 15,
 				maxFontSize: 40,
@@ -117,6 +128,7 @@
 			});
 
 			this.tiltHeading("h2", 4);
+			this.countCharacterOccurrences();
 		},
 
 		blast: function (params) {
@@ -163,6 +175,71 @@
 
 			utils.log('%cOCD.js:', utils.getLogStyle(), selectedHeading, logString);
 		},
+
+		countCharacterOccurrences: function () {
+			//			formObj = document.forms['charCounts'];
+			//			textInput = formObj.elements['textInput'];
+			CountsPlaceholder = document.getElementById('CountsPlaceholder');
+
+			$('body').append('<div class="count"><table class="count-table"></table></div>');
+
+			//			strChars = new String(textInput.value);
+			strChars = $(this.element).text();
+			var arrChars = [];
+			var totalCount;
+
+			// Loop through string and accumulate character counts
+			var len = strChars.length;
+			for (var i = 0; i < len; i++) {
+				if (!arrChars[strChars[i]]) {
+					arrChars[strChars[i]] = 1;
+				} else {
+					arrChars[strChars[i]] += 1;
+				}
+			}
+			countChars = arrChars.count;
+
+			//			// Delete the character counts from previous run
+			//			if (CountsPlaceholder.hasChildNodes()) {
+			//				while (CountsPlaceholder.childNodes.length >= 1) {
+			//					CountsPlaceholder.removeChild(CountsPlaceholder.firstChild);
+			//				}
+			//			}
+
+			// Sort the characters by code
+			sortedChars = [];
+			for (var i in arrChars) {
+				sortedChars.push(utils.zeroPad(i.charCodeAt(0), 5, '0'));
+			}
+			sortedChars.sort();
+
+			// Print the character counts
+			var len = sortedChars.length;
+			for (i = 0; i < sortedChars.length; i++) {
+				character = String.fromCharCode(sortedChars[i]);
+				if (sortedChars[i] == 10) {
+					character = 'LF'
+				}
+				if (sortedChars[i] == 9) {
+					character = 'TAB'
+				}
+				strToPrint = '<tr><td>Code: ' + utils.zeroPad(sortedChars[i].replace(/^0+/, ""), 5, " ") + '</td>';
+				strToPrint += '<td> 0x' + parseInt(sortedChars[i].replace(/^0+/, "")).toString(16).toUpperCase() + '</td>';
+				strToPrint += '<td> \'' + character + '\'</td>';
+				strToPrint += '<td> Count: ' + arrChars[String.fromCharCode(sortedChars[i])] + "</td></tr>";
+				//var txt = document.createTextNode(strToPrint);
+				//				CountsPlaceholder.appendChild(txt);
+
+				if (character !== 'TAB' && character !== 'LF') {
+					$('.count-table').append(strToPrint);
+				}
+			}
+
+			//			// Print total character count
+			//			CountsPlaceholder.appendChild(document.createTextNode('-----TOTAL CHARACTERS: ' + strChars.length + "\n"));
+			$('.count-table').append('<tr><td colspan="4">-----TOTAL CHARACTERS: ' + strChars.length + '</td></tr>');
+
+		}
 
 	};
 
