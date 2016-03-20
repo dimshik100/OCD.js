@@ -222,29 +222,25 @@
 
 				// randomize the flip direction
 				if (utils.randomIntBetween(0, 1) == 0) {
-					this.flipLetterX($letter);
+					this.flipLetter($letter, 'Y');
 				} else {
-					this.flipLetterY($letter);
+					this.flipLetter($letter, 'X');
 				}
 			}
 		},
 
-		flipLetterY: function ($letter) {
+
+		flipLetter: function ($letter, axis) {
 			$letter.css({
-				'direction': 'rtl',
-				'unicode-bidi': 'bidi-override'
+				'-webkit-transform': 'rotate' + axis + '(180deg)',
+				'-moz-transform': 'rotate' + axis + '(180deg)',
+				'-o-transform': 'rotate' + axis + '(180deg)',
+				'-ms-transform': 'rotate' + axis + '(180deg)',
+				'display': 'inline-block'
 			});
-			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], 'letter was flipped on Y axis');
+			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], 'letter was flipped on ' + axis + ' axis');
 		},
-		flipLetterX: function ($letter) {
-			$letter.css({
-				'-webkit-transform': 'rotateX(180deg)',
-				'-moz-transform': 'rotateX(180deg)',
-				'-o-transform': 'rotateX(180deg)',
-				'-ms-transform': 'rotateX(180deg)'
-			});
-			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], 'letter was flipped on X axis');
-		},
+
 
 
 		tiltHeading: function (tag, deg) {
