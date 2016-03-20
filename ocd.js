@@ -29,7 +29,14 @@
 	var pluginName = "ocd",
 		defaults = {
 			ocdLvl: 5, // The value of OCD the page will get [0..12]
-			debug: false
+			debug: false,
+
+			letterFontSizeTolerance: 10,
+			numberOfLettersToChangeSize: 10,
+			numberOfLettersToFlip: 10,
+
+			logStyleFontSizeMin: 15,
+			logStyleFontSizeMax: 30,
 		};
 
 	// The actual plugin constructor
@@ -56,7 +63,7 @@
 	/*Private Functions region*/
 
 	var utils = {
-		randomIntFromInterval: function (min, max) {
+		randomIntBetween: function (min, max) {
 			return Math.floor(Math.random() * (max - min + 1) + min);
 		},
 		getRandomColor: function () {
@@ -68,9 +75,14 @@
 			return color;
 		},
 		getLogStyle: function () {
-			var logStyle = 'text-decoration:underline; font-weight:bold; color:white; background:' + this.getRandomColor() + '; font-size:' + this.randomIntFromInterval(15, 30) + 'px;'
+			var logStyle = 'text-decoration:underline; font-weight:bold; color:white; background:' + this.getRandomColor() + '; font-size:' + this.randomIntBetween(defaults.logStyleFontSizeMin, defaults.logStyleFontSizeMax) + 'px;'
 
 			return logStyle;
+		},
+		getFontSize: function (element) {
+			var style = window.getComputedStyle(element, null).getPropertyValue('font-size');
+			var fontSize = parseFloat(style);
+			return fontSize;
 		},
 		//log: this.options.debug ? console.log.bind(window.console) : function () {}
 		log: undefined,
@@ -117,45 +129,123 @@
 			// init logger
 			utils.log = this.options.debug ? console.log.bind(window.console) : function () {}
 
-			//TODO: change the call from "this.blast" to fire a custom event "blastLoaded", and on event call blast with params
-			loadScript("../externals/blast/jquery.blast.min.js", this.blast, {
-				selector: 'div',
+			function fireBlastLoadedEvent() {
+				// Create the event.
+				var event = document.createEvent('Event');
 
-				delimiter: "letter",
-				minFontSize: 15,
-				maxFontSize: 40,
-				numOfElements: 10
+				// Define that the event name is 'build'.
+				event.initEvent('blastLoaded', true, true);
+
+				var elem = document;
+
+				// Dispatch the event.
+				elem.dispatchEvent(event);
+			}
+
+			//TODO: change the call from "this.blast" to fire a custom event "blastLoaded", and on event call blast with params
+			loadScript("../externals/blast/jquery.blast.min.js", fireBlastLoadedEvent);
+
+			var self = this;
+
+			document.addEventListener('blastLoaded', function () {
+				var params = {
+					selector: 'div',
+					delimiter: "letter"
+				};
+				self.blast(params);
 			});
 
 			this.tiltHeading("h2", 4);
-			this.countCharacterOccurrences();
+
+
+
+			//this.countCharacterOccurrences();
 		},
+
+
 
 		blast: function (params) {
 
-			var $selector = $(params.selector);
+			//TODO: change $selector from body to a generated random list of text elements (according to ocd.lvl)
+			var $selector = $('body');
+
 			$selector.blast({
 				delimiter: params.delimiter
 			});
 
-			var $letters = $('.blast');
+			this.changeLettersSizes(this._defaults.numberOfLettersToChangeSize);
 
-			for (var i = 0; i < params.numOfElements; i++) {
-				var $letter = $letters.eq(utils.randomIntFromInterval(0, $letters.length));
-
-				var fontSize = utils.randomIntFromInterval(params.minFontSize, params.maxFontSize);
-				$letter.css({
-					"font-size": fontSize
-				});
-
-				logString = 'enlarged letter to: ' + fontSize + 'px';
-
-				utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], logString);
-			}
-
-
+			this.flipLetters(this._defaults.numberOfLettersToFlip);
 
 		},
+
+		changeLettersSizes(numberOfLetters) {
+
+			var $letters = $('.blast'),
+				$letter;
+
+			for (var i = 0; i < numberOfLetters; i++) {
+
+				// get random letter from all letters
+				$letter = $letters.eq(utils.randomIntBetween(0, $letters.length));
+
+				this.changeLetterSize($letter, this._defaults.letterFontSizeTolerance);
+			}
+		},
+
+		changeLetterSize: function ($letter, sizeTolerance) {
+			var realFontSize,
+				newFontSize;
+
+			realFontSize = utils.getFontSize($letter[0]);
+
+			newFontSize = utils.randomIntBetween(realFontSize - sizeTolerance, realFontSize + sizeTolerance);
+
+			$letter.css({
+				"font-size": newFontSize
+			});
+
+			logString = 'changed letter font-size From: ' + realFontSize + 'px To: ' + newFontSize + 'px';
+
+			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], logString);
+		},
+
+		flipLetters(numberOfLetters) {
+
+			var $letters = $('.blast'),
+				$letter;
+
+			for (var i = 0; i < numberOfLetters; i++) {
+
+				// get random letter from all letters
+				$letter = $letters.eq(utils.randomIntBetween(0, $letters.length));
+
+				// randomize the flip direction
+				if (utils.randomIntBetween(0, 1) == 0) {
+					this.flipLetterX($letter);
+				} else {
+					this.flipLetterY($letter);
+				}
+			}
+		},
+
+		flipLetterY: function ($letter) {
+			$letter.css({
+				'direction': 'rtl',
+				'unicode-bidi': 'bidi-override'
+			});
+			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], 'letter was flipped on Y axis');
+		},
+		flipLetterX: function ($letter) {
+			$letter.css({
+				'-webkit-transform': 'rotateX(180deg)',
+				'-moz-transform': 'rotateX(180deg)',
+				'-o-transform': 'rotateX(180deg)',
+				'-ms-transform': 'rotateX(180deg)'
+			});
+			utils.log('%cOCD.js:', utils.getLogStyle(), $letter[0], 'letter was flipped on X axis');
+		},
+
 
 		tiltHeading: function (tag, deg) {
 			var allHeadings = this.element.getElementsByTagName(tag),
@@ -163,7 +253,7 @@
 				selectedHeading;
 
 			if (allHeadings.length > 1) {
-				index = utils.randomIntFromInterval(0, allHeadings.length - 1);
+				index = utils.randomIntBetween(0, allHeadings.length - 1);
 				selectedHeading = allHeadings[index];
 			} else if (allHeadings.length === 1) {
 				selectedHeading = allHeadings[index];
